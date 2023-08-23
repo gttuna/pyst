@@ -448,16 +448,22 @@ class AGI:
         self.set_extension(extension)
         self.set_priority(priority)
 
-    def record_file(self, filename, format='gsm', escape_digits='#', timeout=DEFAULT_RECORD, offset=0, beep='beep'):
+    def record_file(self, filename, format='gsm', escape_digits='#', timeout=DEFAULT_RECORD, offset=0, beep: bool = True, silence=1):
         """agi.record_file(filename, format, escape_digits, timeout=DEFAULT_TIMEOUT, offset=0, beep='beep') --> None
         Record to a file until a given dtmf digit in the sequence is received
         The format will specify what kind of file will be recorded.  The timeout
         is the maximum record time in milliseconds, or -1 for no timeout. Offset
         samples is optional, and if provided will seek to the offset without
-        exceeding the end of the file
+        exceeding the end of the file. Silence is the number of seconds of
+        silence allowed before the function returns despite the lack of dtmf
+        digits or reaching timeout.  Beep is whether to beep before recording.
         """
         escape_digits = self._process_digit_list(escape_digits)
-        res = self.execute('RECORD FILE', self._quote(filename), format, escape_digits, timeout, offset, beep)['result'][0]
+        if beep is True:
+            beep = "beep"
+        else:
+            beep = ""
+        res = self.execute('RECORD FILE', self._quote(filename), format, escape_digits, timeout, offset, beep, "s=" + str(silence))['result'][0]
         try:
             return chr(int(res))
         except:
